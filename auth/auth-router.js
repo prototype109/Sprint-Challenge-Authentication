@@ -22,21 +22,18 @@ router.post("/register", async (req, res) => {
   }
 });
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   // implement login
+  const { username, password } = req.body;
   try {
-    const user = User.getUser(req.body.username);
-    if (
-      user.length &&
-      bcrypt.compareSync(req.body.password, user[0].password)
-    ) {
+    const user = await User.getUser(username);
+    console.log("USER: ", user);
+    if (user.length && bcrypt.compareSync(password, user[0].password)) {
       const token = generateToken(user[0]);
-      res
-        .status(200)
-        .json({
-          message: `You have logged in as ${user[0].username}`,
-          token: token
-        });
+      res.status(200).json({
+        message: `You have logged in as ${user[0].username}`,
+        token: token
+      });
     } else {
       res.status(401).json({ message: "incorrect credentials" });
     }
@@ -54,7 +51,7 @@ function generateToken(user) {
     expiresIn: "1h"
   };
 
-  jwt.sign(payload, secret, options);
+  jwt.sign(payload, secret.jwtSecret, options);
 }
 
 module.exports = router;
