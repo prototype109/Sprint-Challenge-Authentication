@@ -11,12 +11,8 @@ router.post("/register", async (req, res) => {
   password = hash;
 
   try {
-    const user = await User.addUser({ username, password });
-    if (user.length) {
-      res.status(200).json({ message: "user added to db" });
-    } else {
-      res.status(400).json({ message: "username already exists" });
-    }
+    await User.addUser({ username, password });
+    res.status(200).json({ message: "user added to db" });
   } catch (error) {
     res.status(500).json(error);
   }
@@ -27,9 +23,9 @@ router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await User.getUser(username);
-    console.log("USER: ", user);
     if (user.length && bcrypt.compareSync(password, user[0].password)) {
       const token = generateToken(user[0]);
+      req.headers.authorization = token;
       res.status(200).json({
         message: `You have logged in as ${user[0].username}`,
         token: token
@@ -51,7 +47,7 @@ function generateToken(user) {
     expiresIn: "1h"
   };
 
-  jwt.sign(payload, secret.jwtSecret, options);
+  return jwt.sign(payload, secret.jwtSecret, options);
 }
 
 module.exports = router;

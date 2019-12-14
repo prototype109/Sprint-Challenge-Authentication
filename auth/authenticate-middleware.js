@@ -4,5 +4,10 @@
 */
 
 module.exports = (req, res, next) => {
-  res.status(401).json({ you: 'shall not pass!' });
+  const token = req.headers.authorization;
+  if (token) {
+    next();
+  } else {
+    res.status(401).json({ you: "shall not pass!" });
+  }
 };
